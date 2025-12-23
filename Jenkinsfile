@@ -43,14 +43,16 @@ pipeline {
                             '''
                         }
                     } catch (Exception e) {
-                        echo "Docker Pipeline plugin not available, using sh directly"
+                        echo "Docker Pipeline plugin not available, using docker command directly"
                         sh '''
-                            python3 -m pip install --upgrade pip
-                            python3 -m pip install black ruff isort mypy
-                            black --check src/ tests/ || true
-                            ruff check src/ tests/ || true
-                            isort --check-only src/ tests/ || true
-                            mypy src/ --ignore-missing-imports || true
+                            docker run --rm -v ${WORKSPACE}:/workspace -w /workspace python:${PYTHON_VERSION} bash -c "
+                                pip install --upgrade pip
+                                pip install black ruff isort mypy
+                                black --check src/ tests/ || true
+                                ruff check src/ tests/ || true
+                                isort --check-only src/ tests/ || true
+                                mypy src/ --ignore-missing-imports || true
+                            "
                         '''
                     }
                 }
@@ -72,13 +74,15 @@ pipeline {
                             '''
                         }
                     } catch (Exception e) {
-                        echo "Docker Pipeline plugin not available, using system Python"
+                        echo "Docker Pipeline plugin not available, using docker command directly"
                         sh '''
-                            python3 -m pip install --upgrade pip
-                            python3 -m pip install -e ".[dev]"
-                            pytest tests/unit/ -v --cov=src/agentic_clinical_assistant \
-                                --cov-report=xml --cov-report=html \
-                                --cov-report=term --junitxml=test-results.xml || true
+                            docker run --rm -v ${WORKSPACE}:/workspace -w /workspace python:${PYTHON_VERSION} bash -c "
+                                pip install --upgrade pip
+                                pip install -e '.[dev]'
+                                pytest tests/unit/ -v --cov=src/agentic_clinical_assistant \
+                                    --cov-report=xml --cov-report=html \
+                                    --cov-report=term --junitxml=test-results.xml || true
+                            "
                         '''
                     }
                 }
@@ -260,12 +264,15 @@ pipeline {
             script {
                 // Only send Slack notification if Slack plugin is configured
                 try {
-                    if (env.BRANCH_NAME == 'develop') {
+                    // Check if slackSend method exists
+                    if (this.respondsTo('slackSend') && env.BRANCH_NAME == 'develop') {
                         slackSend(
                             color: 'good',
                             message: "✅ Build #${env.BUILD_NUMBER} succeeded and deployed to dev",
                             channel: '#deployments'
                         )
+                    } else {
+                        echo "Slack plugin not available or not on develop branch, skipping notification"
                     }
                 } catch (Exception e) {
                     echo "Slack notification skipped: ${e.message}"
@@ -276,11 +283,16 @@ pipeline {
             script {
                 // Only send Slack notification if Slack plugin is configured
                 try {
-                    slackSend(
-                        color: 'danger',
-                        message: "❌ Build #${env.BUILD_NUMBER} failed",
-                        channel: '#deployments'
-                    )
+                    // Check if slackSend method exists
+                    if (this.respondsTo('slackSend')) {
+                        slackSend(
+                            color: 'danger',
+                            message: "❌ Build #${env.BUILD_NUMBER} failed",
+                            channel: '#deployments'
+                        )
+                    } else {
+                        echo "Slack plugin not available, skipping notification"
+                    }
                 } catch (Exception e) {
                     echo "Slack notification skipped: ${e.message}"
                 }
