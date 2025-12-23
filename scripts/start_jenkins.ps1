@@ -1,8 +1,16 @@
 # PowerShell script to start Jenkins in Docker
 
-Write-Host "Starting Jenkins in Docker..." -ForegroundColor Cyan
+Write-Host "Starting Jenkins (with Docker CLI) in Docker..." -ForegroundColor Cyan
 
-# Check if Docker is running
+# Config
+$ImageName = "jenkins-with-docker:lts"
+$ContainerName = "jenkins"
+$HttpPort = 8083      # host port for Jenkins UI
+$JnlpPort = 50000
+$VolumeName = "jenkins_home"
+$DockerSocket = "/var/run/docker.sock" # Docker Desktop exposes this inside the Linux VM
+
+# Check Docker
 try {
     docker ps | Out-Null
     Write-Host "✅ Docker is running" -ForegroundColor Green
@@ -11,22 +19,58 @@ try {
     exit 1
 }
 
-# Check if port 8080 is in use
-$port8080 = Get-NetTCPConnection -LocalPort 8080 -ErrorAction SilentlyContinue
-if ($port8080) {
-    Write-Host "⚠️  Port 8080 is already in use" -ForegroundColor Yellow
-    Write-Host "Checking if Jenkins container exists..." -ForegroundColor Cyan
+# Build custom image if missing
+$hasImage = docker images --format "{{.Repository}}:{{.Tag}}" | Select-String $ImageName
+if (-not $hasImage) {
+    Write-Host "Building image $ImageName ..." -ForegroundColor Cyan
+    $dockerfilePath = Join-Path (Get-Location) "Dockerfile"
+    if (-not (Test-Path $dockerfilePath)) {
+        Write-Host "❌ Dockerfile not found at $dockerfilePath" -ForegroundColor Red
+        exit 1
+    }
+    docker build -t $ImageName -f $dockerfilePath .
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "❌ Failed to build $ImageName" -ForegroundColor Red
+        exit 1
+    }
 }
 
-# Check if Jenkins container already exists
-$existingContainer = docker ps -a --filter "name=jenkins" --format "{{.Names}}" 2>$null
-if ($existingContainer -eq "jenkins") {
-    Write-Host "Jenkins container already exists. Checking status..." -ForegroundColor Yellow
-    
-    $running = docker ps --filter "name=jenkins" --format "{{.Names}}" 2>$null
-    if ($running -eq "jenkins") {
-        Write-Host "✅ Jenkins is already running" -ForegroundColor Green
-        Write-Host "Access Jenkins at: http://localhost:8080" -ForegroundColor Cyan
+# Stop/remove existing container if running with different image/ports
+$existing = docker ps -a --filter "name=$ContainerName" --format "{{.Names}}"
+if ($existing -eq $ContainerName) {
+    Write-Host "Removing existing container $ContainerName ..." -ForegroundColor Yellow
+    docker stop $ContainerName 2>$null | Out-Null
+    docker rm $ContainerName 2>$null | Out-Null
+}
+
+# Check port conflicts
+foreach ($p in @($HttpPort, $JnlpPort)) {
+    $portUse = Get-NetTCPConnection -LocalPort $p -ErrorAction SilentlyContinue
+    if ($portUse) {
+        Write-Host "❌ Port $p is in use. Free it or change \$HttpPort/\$JnlpPort." -ForegroundColor Red
+        exit 1
+    }
+}
+
+# Run new container with docker socket + root user (to access docker)
+Write-Host "Starting container $ContainerName on http://localhost:$HttpPort ..." -ForegroundColor Cyan
+docker run -d --name $ContainerName `
+    -p "$HttpPort`:8080" `
+    -p "$JnlpPort`:50000" `
+    -u root `
+    -v "$VolumeName`:/var/jenkins_home" `
+    -v "$DockerSocket`:$DockerSocket" `
+    $ImageName
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "❌ Failed to start Jenkins container" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "✅ Jenkins container started" -ForegroundColor Green
+Write-Host "Waiting for Jenkins to initialize..." -ForegroundColor Yellow
+Start-Sleep -Seconds 10
+        Write-Host "Access Jenkins at: http://localhost:$HttpPort" -ForegroundColor Cyan
         
         # Get initial password
         Write-Host "`nGetting initial admin password..." -ForegroundColor Cyan
@@ -102,7 +146,7 @@ if ($password) {
     Write-Host "Jenkins is ready!" -ForegroundColor Green
     Write-Host ("=" * 60) -ForegroundColor Cyan
     Write-Host "URL: " -NoNewline -ForegroundColor White
-    Write-Host "http://localhost:8080" -ForegroundColor Cyan
+    Write-Host "http://localhost:$HttpPort" -ForegroundColor Cyan
     Write-Host "Initial Admin Password: " -NoNewline -ForegroundColor White
     Write-Host $password.Trim() -ForegroundColor Yellow
     Write-Host ("=" * 60) -ForegroundColor Cyan
