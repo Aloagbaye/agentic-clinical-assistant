@@ -52,16 +52,24 @@ pipeline {
                         
                         if (dockerAvailable) {
                             echo "Using docker command directly"
-                            def workspacePath = pwd()
+                            def workspacePath = env.WORKSPACE
+                            echo "Workspace path: ${workspacePath}"
                             sh """
-                                docker run --rm -v '${workspacePath}':/workspace -w /workspace python:${PYTHON_VERSION} bash -c '
+                                docker run --rm -v "${workspacePath}":/workspace -w /workspace python:${PYTHON_VERSION} bash -c "
+                                    set -e
+                                    if [ ! -f /workspace/pyproject.toml ]; then
+                                        echo 'ERROR: pyproject.toml not found in /workspace'
+                                        echo 'Workspace contents:'
+                                        ls -la /workspace/
+                                        exit 1
+                                    fi
                                     pip install --upgrade pip
                                     pip install black ruff isort mypy
-                                    black --check src/ tests/ || echo "Black formatting issues found (non-blocking)"
-                                    ruff check src/ tests/ || echo "Ruff issues found (non-blocking)"
-                                    isort --check-only src/ tests/ || echo "Import sorting issues found (non-blocking)"
-                                    mypy src/ --ignore-missing-imports || echo "Type checking issues found (non-blocking)"
-                                '
+                                    black --check src/ tests/ || echo 'Black formatting issues found (non-blocking)'
+                                    ruff check src/ tests/ || echo 'Ruff issues found (non-blocking)'
+                                    isort --check-only src/ tests/ || echo 'Import sorting issues found (non-blocking)'
+                                    mypy src/ --ignore-missing-imports || echo 'Type checking issues found (non-blocking)'
+                                "
                             """
                         } else {
                             echo "Docker not available, skipping lint stage. Install Docker Pipeline plugin or mount Docker socket."
@@ -97,16 +105,27 @@ pipeline {
                         
                         if (dockerAvailable) {
                             echo "Using docker command directly"
-                            def workspacePath = pwd()
+                            def workspacePath = env.WORKSPACE
+                            echo "Workspace path: ${workspacePath}"
                             sh """
-                                docker run --rm -v '${workspacePath}':/workspace -w /workspace python:${PYTHON_VERSION} bash -c '
+                                docker run --rm -v "${workspacePath}":/workspace -w /workspace python:${PYTHON_VERSION} bash -c "
+                                    set -e
+                                    echo 'Checking workspace contents...'
+                                    ls -la /workspace/ | head -20
+                                    if [ ! -f /workspace/pyproject.toml ]; then
+                                        echo 'ERROR: pyproject.toml not found in /workspace'
+                                        echo 'Current directory: ' && pwd
+                                        echo 'Workspace contents:'
+                                        ls -la /workspace/
+                                        exit 1
+                                    fi
                                     pip install --upgrade pip
-                                    pip install -e ".[dev]"
-                                    pytest tests/ -v -k "not integration and not contract and not smoke" \
-                                        --cov=src/agentic_clinical_assistant \
-                                        --cov-report=xml --cov-report=html \
+                                    pip install -e '.[dev]'
+                                    pytest tests/ -v -k 'not integration and not contract and not smoke' \\
+                                        --cov=src/agentic_clinical_assistant \\
+                                        --cov-report=xml --cov-report=html \\
                                         --cov-report=term --junitxml=test-results.xml || true
-                                '
+                                "
                             """
                         } else {
                             echo "Docker not available, skipping unit tests. Install Docker Pipeline plugin or mount Docker socket."
