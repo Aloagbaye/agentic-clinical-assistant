@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: dev
+
+resources:
+  - ../../base
+
+replicas:
+  - name: agent-api
+    count: 2
+  - name: worker
+    count: 1
+
+patches:
+  - path: deployment-patch.yaml
+    target:
+      kind: Deployment
+
+images:
+  - name: agentic-clinical-assistant/api
+    newName: agentic-clinical-assistant/api
+    newTag: latest
+  - name: agentic-clinical-assistant/worker
+    newName: agentic-clinical-assistant/worker
+    newTag: latest
+

@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agent-config
+  labels:
+    app: agentic-clinical-assistant
+data:
+  # Backend selection policy
+  BACKEND_SELECTION_POLICY: |
+    {
+      "default": "faiss",
+      "policies": {
+        "policy_lookup": ["faiss", "pinecone"],
+        "summarize": ["faiss"],
+        "compare": ["pinecone", "weaviate"],
+        "explain": ["faiss"]
+      }
+    }
+  
+  # Agent configuration
+  AGENT_CONFIG: |
+    {
+      "intake": {
+        "confidence_threshold": 0.7,
+        "risk_assessment": "enabled"
+      },
+      "retrieval": {
+        "default_top_k": 10,
+        "max_top_k": 50
+      },
+      "synthesis": {
+        "max_tokens": 2000,
+        "temperature": 0.7
+      },
+      "verifier": {
+        "grounding_threshold": 0.5,
+        "phi_detection": "enabled"
+      }
+    }
+  
+  # Vector DB configuration
+  VECTOR_DB_CONFIG: |
+    {
+      "faiss": {
+        "index_path": "/data/faiss/index",
+        "dimension": 384
+      },
+      "pinecone": {
+        "environment": "us-west1-gcp",
+        "index_name": "clinical-assistant"
+      },
+      "weaviate": {
+        "url": "http://weaviate:8080",
+        "class_name": "Document"
+      }
+    }
+

@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        // Credentials are optional - stages will skip if not configured
+        // Optional credentials - pipeline will skip stages if not configured
         PYTHON_VERSION = '3.12'
         IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}"
     }
@@ -132,7 +132,6 @@ pipeline {
                             return env.REGISTRY != null && env.REGISTRY != ''
                         }
                     } catch (Exception e) {
-                        echo "Skipping push stage: docker-registry-url credential not configured"
                         return false
                     }
                 }
@@ -166,7 +165,6 @@ pipeline {
                                 return true
                             }
                         } catch (Exception e) {
-                            echo "Skipping deployment stage: kubeconfig credential not configured"
                             return false
                         }
                     }
