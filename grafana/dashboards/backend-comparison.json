@@ -1,0 +1,73 @@
+{
+  "dashboard": {
+    "title": "Backend Comparison",
+    "tags": ["agentic-clinical-assistant", "backends"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "MRR by Backend",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "retrieval_mrr",
+            "legendFormat": "{{backend}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "yaxes": [
+          {"format": "short", "label": "MRR"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 2,
+        "title": "nDCG by Backend",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "retrieval_ndcg",
+            "legendFormat": "{{backend}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "yaxes": [
+          {"format": "short", "label": "nDCG"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Retrieval Latency by Backend",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(retrieval_latency_ms_bucket[5m])) by (le, backend))",
+            "legendFormat": "p95 {{backend}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "yaxes": [
+          {"format": "ms", "label": "Latency (ms)"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Backend Selection by Query Type",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(backend_selected_total[5m])) by (backend, query_type)",
+            "legendFormat": "{{backend}} - {{query_type}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      }
+    ]
+  }
+}
+

@@ -99,12 +99,16 @@ class WorkflowEngine:
         self.state.current_step = "intake"
 
         try:
-            # Dispatch intake task
+            # Dispatch intake task with user context
+            step_start_time = time.time()
             task_result = run_intake_agent.delay(
                 self.run_id,
                 self.state.request_text,
+                self.state.user_id,
             )
             intake_data = task_result.get(timeout=60)
+            step_latency_ms = (time.time() - step_start_time) * 1000
+            MetricsCollector.record_agent_step_latency("intake", step_latency_ms)
 
             # Create step result
             self.state.intake_result = StepResult(

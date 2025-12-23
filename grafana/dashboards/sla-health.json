@@ -1,0 +1,77 @@
+{
+  "dashboard": {
+    "title": "SLA Health",
+    "tags": ["agentic-clinical-assistant", "sla"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "P95 Latency per Agent Step",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(agent_step_latency_ms_bucket[5m])) by (le, step))",
+            "legendFormat": "p95 {{step}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "yaxes": [
+          {"format": "ms", "label": "Latency (ms)"},
+          {"format": "short"}
+        ],
+        "thresholds": [
+          {"value": 1000, "colorMode": "critical", "op": "gt"},
+          {"value": 500, "colorMode": "warning", "op": "gt"}
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Workflow Duration by Status",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(workflow_duration_ms_bucket[5m])) by (le, status))",
+            "legendFormat": "p95 {{status}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "yaxes": [
+          {"format": "ms", "label": "Duration (ms)"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Error Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(agent_runs_total{status=\"failed\"}[5m])) / sum(rate(agent_runs_total[5m]))",
+            "legendFormat": "Error Rate"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "thresholds": [
+          {"value": 0.05, "colorMode": "critical", "op": "gt"},
+          {"value": 0.01, "colorMode": "warning", "op": "gt"}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Active Workflows",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "active_workflows",
+            "legendFormat": "Active Workflows"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      }
+    ]
+  }
+}
+

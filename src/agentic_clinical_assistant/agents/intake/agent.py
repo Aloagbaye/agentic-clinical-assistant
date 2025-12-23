@@ -2,8 +2,10 @@
 
 import re
 from typing import Any, Dict, List, Optional
+from uuid import UUID
 
 from agentic_clinical_assistant.agents.intake.models import RequestPlan, RequestType, RiskLabel
+from agentic_clinical_assistant.memory.session import get_session_memory
 
 
 class IntakeAgent:
@@ -43,17 +45,37 @@ class IntakeAgent:
             ],
         }
 
-    async def classify_request(self, request_text: str) -> RequestPlan:
+    async def classify_request(
+        self,
+        request_text: str,
+        user_id: Optional[str] = None,
+        session_id: Optional[UUID] = None,
+    ) -> RequestPlan:
         """
         Classify request and assess risk.
 
         Args:
             request_text: User's request
+            user_id: Optional user identifier
+            session_id: Optional session identifier
 
         Returns:
             RequestPlan with classification and risk assessment
         """
         request_text_lower = request_text.lower()
+
+        # Load user preferences from session memory
+        preferences = {}
+        if session_id:
+            session_memory = get_session_memory()
+            prefs = await session_memory.get_preferences(session_id)
+            if prefs:
+                preferences = prefs
+        elif user_id:
+            session_memory = get_session_memory()
+            session = await session_memory.get_user_session(user_id)
+            if session:
+                preferences = await session_memory.get_preferences(session.session_id)
 
         # Classify request type
         request_type = self._classify_request_type(request_text_lower)
@@ -63,6 +85,12 @@ class IntakeAgent:
         
         # Extract constraints
         constraints = self._extract_constraints(request_text)
+        
+        # Apply user preferences to constraints
+        if preferences.get("department"):
+            constraints["department"] = preferences["department"]
+        if preferences.get("jurisdiction"):
+            constraints["location"] = preferences["jurisdiction"]
         
         # Determine required tools
         required_tools = self._determine_required_tools(request_type, risk_label)
@@ -78,6 +106,8 @@ class IntakeAgent:
             confidence=confidence,
             metadata={
                 "original_request": request_text,
+                "preferences_applied": bool(preferences),
+                "preferred_backend": preferences.get("preferred_backend"),
             },
         )
 

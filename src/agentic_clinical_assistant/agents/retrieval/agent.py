@@ -31,6 +31,7 @@ class RetrievalAgent:
         top_k: int = 10,
         filters: Optional[Dict[str, Any]] = None,
         backends: Optional[List[str]] = None,
+        preferred_backend: Optional[str] = None,
     ) -> RetrievalResult:
         """
         Retrieve evidence for a query.
@@ -40,6 +41,7 @@ class RetrievalAgent:
             top_k: Number of results to retrieve
             filters: Metadata filters
             backends: Specific backends to query (None = all configured)
+            preferred_backend: Preferred backend from user preferences
 
         Returns:
             RetrievalResult with evidence
@@ -54,7 +56,10 @@ class RetrievalAgent:
 
         # Determine which backends to query
         if backends is None:
-            backends = ["faiss"]  # Default to FAISS for now
+            if preferred_backend:
+                backends = [preferred_backend]
+            else:
+                backends = ["faiss"]  # Default to FAISS for now
             # TODO: Get from settings or use all configured backends
 
         # Query backends

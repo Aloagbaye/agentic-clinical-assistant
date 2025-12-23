@@ -1,0 +1,61 @@
+{
+  "dashboard": {
+    "title": "Safety & Quality",
+    "tags": ["agentic-clinical-assistant", "safety"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Grounding Failures by Reason",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(grounding_fail_total[5m])) by (reason)",
+            "legendFormat": "{{reason}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Answer Abstentions by Reason",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(answers_abstained_total[5m])) by (reason)",
+            "legendFormat": "{{reason}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Citationless Answers",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(citationless_answer_total[5m]))",
+            "legendFormat": "Citationless Answers"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "PHI Redaction Events by Type",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(phi_redaction_events_total[5m])) by (type)",
+            "legendFormat": "{{type}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      }
+    ]
+  }
+}
+

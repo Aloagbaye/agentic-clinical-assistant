@@ -2,6 +2,7 @@
 
 import hashlib
 import re
+import time
 from typing import Any, Dict, List, Optional
 
 from agentic_clinical_assistant.agents.retrieval.agent import RetrievalAgent
@@ -10,6 +11,7 @@ from agentic_clinical_assistant.agents.verifier.agent import VerifierAgent
 from agentic_clinical_assistant.config import settings
 from agentic_clinical_assistant.database import get_async_session
 from agentic_clinical_assistant.database.audit import AuditLogger
+from agentic_clinical_assistant.metrics.collector import MetricsCollector
 from agentic_clinical_assistant.vector.base import VectorDBBackend
 from agentic_clinical_assistant.vector.embeddings import get_embedding_generator
 
@@ -34,6 +36,9 @@ async def retrieve_evidence(
     Returns:
         Dictionary with evidence results
     """
+    # Record tool call start time
+    start_time = time.time()
+    
     agent = RetrievalAgent()
     result = await agent.retrieve_evidence(
         query=query,
@@ -41,6 +46,15 @@ async def retrieve_evidence(
         filters=filters or {},
         backends=[backend] if backend else None,
     )
+    
+    # Record metrics
+    latency_ms = (time.time() - start_time) * 1000
+    backend_used = result.backend or backend or "unknown"
+    MetricsCollector.record_tool_call("retrieve_evidence", backend_used, latency_ms)
+    
+    # Record retrieval latency if backend is known
+    if backend_used != "unknown":
+        MetricsCollector.record_retrieval_metrics(backend_used, latency_ms=latency_ms)
 
     # Log tool call
     if run_id:
@@ -93,6 +107,9 @@ async def redact_phi(
             (r"\b\d{1,3}\s+[A-Z][a-z]+\s+St(?:reet|\.)?\b", "[ADDRESS]"),  # Street address
         ])
 
+    # Record tool call start time
+    start_time = time.time()
+    
     redacted_text = text
     redactions = []
     total_count = 0
@@ -112,6 +129,24 @@ async def redact_phi(
                     "original": match.group(),
                 })
                 total_count += 1
+                
+                # Record PHI redaction by type
+                if replacement == "[SSN]":
+                    MetricsCollector.record_phi_redaction("ssn")
+                elif replacement == "[PHONE]":
+                    MetricsCollector.record_phi_redaction("phone")
+                elif replacement == "[EMAIL]":
+                    MetricsCollector.record_phi_redaction("email")
+                elif replacement == "[DATE]":
+                    MetricsCollector.record_phi_redaction("date")
+                elif replacement == "[NAME]":
+                    MetricsCollector.record_phi_redaction("name")
+                elif replacement == "[ADDRESS]":
+                    MetricsCollector.record_phi_redaction("address")
+
+    # Record metrics
+    latency_ms = (time.time() - start_time) * 1000
+    MetricsCollector.record_tool_call("redact_phi", "none", latency_ms)
 
     # Log tool call
     if run_id:
@@ -196,11 +231,22 @@ async def generate_answer(
     Returns:
         Dictionary with generated answer and citations
     """
+    # Record tool call start time
+    start_time = time.time()
+    
     agent = SynthesisAgent()
     result = await agent.generate_answer(
         request_text=request_text,
         evidence=evidence_bundle,
     )
+    
+    # Record metrics
+    latency_ms = (time.time() - start_time) * 1000
+    MetricsCollector.record_tool_call("generate_answer", "none", latency_ms)
+    
+    # Check for citations
+    if not result.citations or len(result.citations) == 0:
+        MetricsCollector.record_citationless_answer()
 
     # Log tool call
     if run_id:
@@ -248,8 +294,24 @@ async def verify_grounding(
         for item in evidence_bundle
     ]
 
+    # Record tool call start time
+    start_time = time.time()
+    
     agent = VerifierAgent()
     result = await agent.verify(draft_answer=draft_answer, citations=citations)
+    
+    # Record metrics
+    latency_ms = (time.time() - start_time) * 1000
+    MetricsCollector.record_tool_call("verify_grounding", "none", latency_ms)
+    
+    # Record grounding metrics
+    if not result.passed:
+        if not citations or len(citations) == 0:
+            MetricsCollector.record_grounding_fail("no_citations")
+        elif result.grounding_score < 0.5:
+            MetricsCollector.record_grounding_fail("weak_grounding")
+        else:
+            MetricsCollector.record_grounding_fail("citation_mismatch")
 
     # Log tool call
     if run_id:

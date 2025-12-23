@@ -78,13 +78,14 @@ def run_agent_workflow(self, run_id: uuid.UUID, request_text: str, user_id: Opti
     bind=True,
     max_retries=2,
 )
-def run_intake_agent(self, run_id: uuid.UUID, request_text: str) -> Dict[str, Any]:
+def run_intake_agent(self, run_id: uuid.UUID, request_text: str, user_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Intake Agent task - Classify request and assess risk.
 
     Args:
         run_id: Agent run ID
         request_text: User's request
+        user_id: Optional user identifier
 
     Returns:
         Request plan with classification and risk assessment
@@ -95,11 +96,25 @@ def run_intake_agent(self, run_id: uuid.UUID, request_text: str) -> Dict[str, An
     # Create intake agent
     agent = IntakeAgent()
     
+    # Get session ID from user_id if available
+    session_id = None
+    if user_id:
+        from agentic_clinical_assistant.memory.session import get_session_memory
+        session_memory = get_session_memory()
+        loop_temp = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop_temp)
+        try:
+            session = loop_temp.run_until_complete(session_memory.get_user_session(user_id))
+            if session:
+                session_id = session.session_id
+        finally:
+            loop_temp.close()
+    
     # Run async classification
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
-        plan = loop.run_until_complete(agent.classify_request(request_text))
+        plan = loop.run_until_complete(agent.classify_request(request_text, user_id=user_id, session_id=session_id))
         return plan.to_dict()
     finally:
         loop.close()

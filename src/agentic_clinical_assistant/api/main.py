@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from agentic_clinical_assistant.api.middleware import setup_cors, setup_logging_middleware
 from agentic_clinical_assistant.api.routes import (
     agent_router,
+    memory_router,
     metrics_router,
     tools_router,
     workers_router,
@@ -44,6 +45,7 @@ app.include_router(agent_router)
 app.include_router(metrics_router)
 app.include_router(workers_router)
 app.include_router(tools_router)
+app.include_router(memory_router)
 
 
 @app.get("/", tags=["root"])
