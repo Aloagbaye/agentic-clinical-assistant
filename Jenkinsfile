@@ -52,14 +52,20 @@ pipeline {
                         
                         if (dockerAvailable) {
                             echo "Using docker command directly"
-                            def workspacePath = env.WORKSPACE
+                            // Use pwd() to get the actual workspace path that Docker can access
+                            def workspacePath = sh(script: 'pwd', returnStdout: true).trim()
                             echo "Workspace path: ${workspacePath}"
+                            echo "Checking if pyproject.toml exists before mounting..."
+                            sh "test -f pyproject.toml && echo 'pyproject.toml found' || echo 'pyproject.toml NOT found'"
                             sh """
                                 docker run --rm -v "${workspacePath}":/workspace -w /workspace python:${PYTHON_VERSION} bash -c "
                                     set -e
+                                    echo 'Current directory:' && pwd
+                                    echo 'Workspace contents:' && ls -la /workspace/ | head -20
                                     if [ ! -f /workspace/pyproject.toml ]; then
                                         echo 'ERROR: pyproject.toml not found in /workspace'
-                                        echo 'Workspace contents:'
+                                        echo 'Mounted path: ${workspacePath}'
+                                        echo 'Full workspace listing:'
                                         ls -la /workspace/
                                         exit 1
                                     fi
@@ -105,17 +111,20 @@ pipeline {
                         
                         if (dockerAvailable) {
                             echo "Using docker command directly"
-                            def workspacePath = env.WORKSPACE
+                            // Use pwd() to get the actual workspace path that Docker can access
+                            def workspacePath = sh(script: 'pwd', returnStdout: true).trim()
                             echo "Workspace path: ${workspacePath}"
+                            echo "Checking if pyproject.toml exists before mounting..."
+                            sh "test -f pyproject.toml && echo 'pyproject.toml found' || echo 'pyproject.toml NOT found'"
                             sh """
                                 docker run --rm -v "${workspacePath}":/workspace -w /workspace python:${PYTHON_VERSION} bash -c "
                                     set -e
-                                    echo 'Checking workspace contents...'
-                                    ls -la /workspace/ | head -20
+                                    echo 'Current directory:' && pwd
+                                    echo 'Workspace contents:' && ls -la /workspace/ | head -20
                                     if [ ! -f /workspace/pyproject.toml ]; then
                                         echo 'ERROR: pyproject.toml not found in /workspace'
-                                        echo 'Current directory: ' && pwd
-                                        echo 'Workspace contents:'
+                                        echo 'Mounted path: ${workspacePath}'
+                                        echo 'Full workspace listing:'
                                         ls -la /workspace/
                                         exit 1
                                     fi
