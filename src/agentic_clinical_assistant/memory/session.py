@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 from uuid import UUID, uuid4
 
 from agentic_clinical_assistant.database import get_async_session
-from agentic_clinical_assistant.database.models.session_memory import SessionMemory
+from agentic_clinical_assistant.database.models.session_memory import SessionMemory as SessionMemoryModel
 
 
 class SessionMemory:
@@ -18,7 +18,7 @@ class SessionMemory:
         user_id: Optional[str] = None,
         preferences: Optional[Dict[str, Any]] = None,
         expiration_days: int = DEFAULT_EXPIRATION_DAYS,
-    ) -> SessionMemory:
+    ) -> SessionMemoryModel:
         """
         Create a new session.
 

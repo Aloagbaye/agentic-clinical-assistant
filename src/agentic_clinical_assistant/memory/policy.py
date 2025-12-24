@@ -43,7 +43,7 @@ class PolicyMemory:
             memory = PolicyMemory(
                 doc_hash=doc_hash,
                 document_id=document_id,
-                metadata=metadata or {},
+                extra_metadata=metadata or {},
                 first_accessed=datetime.utcnow(),
             )
             db_session.add(memory)

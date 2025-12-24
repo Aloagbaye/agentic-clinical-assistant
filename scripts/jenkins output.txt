@@ -1,0 +1,91 @@
+==================================== ERRORS ====================================
+14:16:58  ____________________ ERROR collecting tests/test_agents.py _____________________
+14:16:58  ImportError while importing test module '/var/jenkins_home/workspace/agentic-clinical-assistant/tests/test_agents.py'.
+14:16:58  Hint: make sure your test modules/packages have valid Python names.
+14:16:58  Traceback:
+14:16:58  /usr/local/lib/python3.12/importlib/__init__.py:90: in import_module
+14:16:58      return _bootstrap._gcd_import(name[level:], package, level)
+14:16:58             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+14:16:58  tests/test_agents.py:5: in <module>
+14:16:58      from agentic_clinical_assistant.agents.intake.agent import IntakeAgent
+14:16:58  src/agentic_clinical_assistant/agents/__init__.py:3: in <module>
+14:16:58      from agentic_clinical_assistant.agents.intake.agent import IntakeAgent
+14:16:58  src/agentic_clinical_assistant/agents/intake/__init__.py:3: in <module>
+14:16:58      from agentic_clinical_assistant.agents.intake.agent import IntakeAgent
+14:16:58  src/agentic_clinical_assistant/agents/intake/agent.py:8: in <module>
+14:16:58      from agentic_clinical_assistant.memory.session import get_session_memory
+14:16:58  src/agentic_clinical_assistant/memory/__init__.py:3: in <module>
+14:16:58      from agentic_clinical_assistant.memory.session import SessionMemory
+14:16:58  src/agentic_clinical_assistant/memory/session.py:8: in <module>
+14:16:58      from agentic_clinical_assistant.database.models.session_memory import SessionMemory
+14:16:58  E   ModuleNotFoundError: No module named 'agentic_clinical_assistant.database.models'
+14:16:58  ______________________ ERROR collecting tests/test_api.py ______________________
+14:16:58  ImportError while importing test module '/var/jenkins_home/workspace/agentic-clinical-assistant/tests/test_api.py'.
+14:16:58  Hint: make sure your test modules/packages have valid Python names.
+14:16:58  Traceback:
+14:16:58  /usr/local/lib/python3.12/importlib/__init__.py:90: in import_module
+14:16:58      return _bootstrap._gcd_import(name[level:], package, level)
+14:16:58             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+14:16:58  tests/test_api.py:6: in <module>
+14:16:58      from agentic_clinical_assistant.api.main import app
+14:16:58  src/agentic_clinical_assistant/api/__init__.py:3: in <module>
+14:16:58      from agentic_clinical_assistant.api.main import app
+14:16:58  src/agentic_clinical_assistant/api/main.py:9: in <module>
+14:16:58      from agentic_clinical_assistant.api.routes import (
+14:16:58  src/agentic_clinical_assistant/api/routes/__init__.py:3: in <module>
+14:16:58      from agentic_clinical_assistant.api.routes.agent import router as agent_router
+14:16:58  src/agentic_clinical_assistant/api/routes/agent.py:10: in <module>
+14:16:58      from agentic_clinical_assistant.api.models.agent import (
+14:16:58  E   ModuleNotFoundError: No module named 'agentic_clinical_assistant.api.models'
+14:16:58  ___________________ ERROR collecting tests/test_database.py ____________________
+14:16:58  ImportError while importing test module '/var/jenkins_home/workspace/agentic-clinical-assistant/tests/test_database.py'.
+14:16:58  Hint: make sure your test modules/packages have valid Python names.
+14:16:58  Traceback:
+14:16:58  /usr/local/lib/python3.12/importlib/__init__.py:90: in import_module
+14:16:58      return _bootstrap._gcd_import(name[level:], package, level)
+14:16:58             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+14:16:58  tests/test_database.py:7: in <module>
+14:16:58      from agentic_clinical_assistant.database.audit import AuditLogger
+14:16:58  src/agentic_clinical_assistant/database/audit.py:10: in <module>
+14:16:58      from agentic_clinical_assistant.database.models.agent_run import AgentRun, RunStatus
+14:16:58  E   ModuleNotFoundError: No module named 'agentic_clinical_assistant.database.models'
+14:16:58  _____________________ ERROR collecting tests/test_tools.py _____________________
+14:16:58  ImportError while importing test module '/var/jenkins_home/workspace/agentic-clinical-assistant/tests/test_tools.py'.
+14:16:58  Hint: make sure your test modules/packages have valid Python names.
+14:16:58  Traceback:
+14:16:58  /usr/local/lib/python3.12/importlib/__init__.py:90: in import_module
+14:16:58      return _bootstrap._gcd_import(name[level:], package, level)
+14:16:58             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+14:16:58  tests/test_tools.py:5: in <module>
+14:16:58      from agentic_clinical_assistant.tools.core import compute_doc_hash, redact_phi
+14:16:58  src/agentic_clinical_assistant/tools/__init__.py:3: in <module>
+14:16:58      from agentic_clinical_assistant.tools.core import (
+14:16:58  src/agentic_clinical_assistant/tools/core.py:8: in <module>
+14:16:58      from agentic_clinical_assistant.agents.retrieval.agent import RetrievalAgent
+14:16:58  src/agentic_clinical_assistant/agents/__init__.py:3: in <module>
+14:16:58      from agentic_clinical_assistant.agents.intake.agent import IntakeAgent
+14:16:58  src/agentic_clinical_assistant/agents/intake/__init__.py:3: in <module>
+14:16:58      from agentic_clinical_assistant.agents.intake.agent import IntakeAgent
+14:16:58  src/agentic_clinical_assistant/agents/intake/agent.py:8: in <module>
+14:16:58      from agentic_clinical_assistant.memory.session import get_session_memory
+14:16:58  src/agentic_clinical_assistant/memory/__init__.py:3: in <module>
+14:16:58      from agentic_clinical_assistant.memory.session import SessionMemory
+14:16:58  src/agentic_clinical_assistant/memory/session.py:8: in <module>
+14:16:58      from agentic_clinical_assistant.database.models.session_memory import SessionMemory
+14:16:58  E   ModuleNotFoundError: No module named 'agentic_clinical_assistant.database.models'
+14:16:58  ___________________ ERROR collecting tests/test_workflow.py ____________________
+14:16:58  ImportError while importing test module '/var/jenkins_home/workspace/agentic-clinical-assistant/tests/test_workflow.py'.
+14:16:58  Hint: make sure your test modules/packages have valid Python names.
+14:16:58  Traceback:
+14:16:58  /usr/local/lib/python3.12/importlib/__init__.py:90: in import_module
+14:16:58      return _bootstrap._gcd_import(name[level:], package, level)
+14:16:58             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+14:16:58  tests/test_workflow.py:7: in <module>
+14:16:58      from agentic_clinical_assistant.workflow.engine import WorkflowEngine
+14:16:58  src/agentic_clinical_assistant/workflow/__init__.py:3: in <module>
+14:16:58      from agentic_clinical_assistant.workflow.engine import WorkflowEngine
+14:16:58  src/agentic_clinical_assistant/workflow/engine.py:8: in <module>
+14:16:58      from agentic_clinical_assistant.database.audit import AuditLogger
+14:16:58  src/agentic_clinical_assistant/database/audit.py:10: in <module>
+14:16:58      from agentic_clinical_assistant.database.models.agent_run import AgentRun, RunStatus
+14:16:58  E   ModuleNotFoundError: No module named 'agentic_clinical_assistant.database.models'

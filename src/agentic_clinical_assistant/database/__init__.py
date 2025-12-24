@@ -8,6 +8,21 @@ from agentic_clinical_assistant.database.base import (
     get_engine,
 )
 
+# Import models to ensure they're registered
+from agentic_clinical_assistant.database.models import (  # noqa: F401
+    AgentRun,
+    Citation,
+    Evaluation,
+    EvidenceRetrieval,
+    GroundingVerification,
+    PolicyMemory,
+    PromptVersion,
+    QueryPattern,
+    RunStatus,
+    SessionMemory,
+    ToolCall,
+)
+
 # Lazy initialization - only create engine when needed
 # This prevents issues when Alembic imports models
 try:
@@ -25,5 +40,17 @@ __all__ = [
     "get_async_session_local",
     "AsyncSessionLocal",
     "engine",
+    # Models
+    "AgentRun",
+    "RunStatus",
+    "Citation",
+    "Evaluation",
+    "EvidenceRetrieval",
+    "GroundingVerification",
+    "PolicyMemory",
+    "QueryPattern",
+    "PromptVersion",
+    "SessionMemory",
+    "ToolCall",
 ]
 
